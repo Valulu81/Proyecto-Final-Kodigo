@@ -1,5 +1,9 @@
+// AQUÍ ESTÁN LOS DATOS POR DEFAULT DE LA APP, TAMBIÉN AQUÍ DEBERÍA REEMPLAZARSE POR LA CONEXIÓN A LA API
+
+//LLAVE EN EL LOCALSTORAGE
 const KEY = "kodigo_boards_v1";
 
+//DATA POR DEFAULT
 const defaultData = {
   boards: [
     { id: "b1", name: "Tablero 1" },
@@ -21,13 +25,18 @@ const defaultData = {
   },
 };
 
+//CARGAR INFO
 export function load() {
   const raw = localStorage.getItem(KEY);
   return raw ? JSON.parse(raw) : defaultData;
 }
+
+//GUARDAR INFO
 export function save(state) {
   localStorage.setItem(KEY, JSON.stringify(state));
 }
+
+//CREA ID'S PARA LOS TABLEROS O COLUMNAS O TARJETAS
 export function uid(prefix = "id") {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 }

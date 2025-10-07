@@ -30,6 +30,7 @@ export default function Kanban() {
     cardId: null,
   });
 
+  //GUARDA LA INFO CADA VEZ QUE SE HACE ALGO
   function setState(updater) {
     const next = typeof updater === "function" ? updater(state) : updater;
     setStateRaw(next);
@@ -47,15 +48,7 @@ export default function Kanban() {
     });
   }
 
-  // function addCard(colId, index, editExisting) {
-  //   setCardPopup({
-  //     open: true,
-  //     colId,
-  //     index,
-  //     defaultValue: editExisting ? "Editar contenido" : "",
-  //   });
-  // }
-
+  //ESTA FUNCIÓN SE ENCARGA DE AGREAGAR O EDITAR UNA TARJETA, CREA EL OBJETO O MODIFICA EL PRE EXISTENTE
   function addCard(colId, index, editExisting = false, card = null) {
     if (editExisting && card) {
       // Editar tarjeta existente
@@ -88,87 +81,8 @@ export default function Kanban() {
     }
   }
 
-  // function createCardWithTitle(cardData) {
-  //   if (title == null || title.trim() === "") {
-  //     setCardPopup({ open: false, colId: null, index: 0, defaultValue: "" });
-  //     return;
-  //   }
-  //   const cardId = uid("card");
-  //   const cards = {
-  //     ...state.cards,
-  //     [cardId]: { id: cardId, title: title.trim(),assigedTo: "", status: "pendiente", priority: "Media",dueDate: "" },
-  //   };
+  //ESTA FUNCIÓN  CREA LAS TARJETAS
 
-  //   const nextCols = cols.map((c) =>
-  //     c.id === cardPopup.colId
-  //       ? {
-  //           ...c,
-  //           cardIds: [
-  //             ...c.cardIds.slice(0, cardPopup.index),
-  //             cardId,
-  //             ...c.cardIds.slice(cardPopup.index),
-  //           ],
-  //         }
-  //       : c
-  //   );
-  //   setState({
-  //     ...state,
-  //     cards,
-  //     columns: { ...state.columns, [state.activeBoardId]: nextCols },
-  //   });
-  //   setCardPopup({ open: false, colId: null, index: 0, defaultValue: "" });
-  // }
-
-  function createCardWithTitle(cardData) {
-    const { title, assignedTo, status, priority, dueDate } = cardData;
-
-    // Validar que tenga título
-    if (!title || title.trim() === "") {
-      setCardPopup({ open: false, colId: null, index: 0, defaultValue: "" });
-      return;
-    }
-
-    const cardId = uid("card");
-
-    // Crear nueva tarjeta con todos los campos
-    const cards = {
-      ...state.cards,
-      [cardId]: {
-        id: cardId,
-        title: title.trim(),
-        assignedTo: assignedTo?.trim() || "",
-        status: status || "Pendiente",
-        priority: priority || "Media",
-        dueDate: dueDate || "",
-      },
-    };
-
-    // Insertar tarjeta en la columna seleccionada
-    const nextCols = cols.map((c) =>
-      c.id === cardPopup.colId
-        ? {
-            ...c,
-            cardIds: [
-              ...c.cardIds.slice(0, cardPopup.index),
-              cardId,
-              ...c.cardIds.slice(cardPopup.index),
-            ],
-          }
-        : c
-    );
-
-    // Actualizar estado y guardar
-    setState({
-      ...state,
-      cards,
-      columns: { ...state.columns, [state.activeBoardId]: nextCols },
-    });
-
-    // Cerrar modal
-    setCardPopup({ open: false, colId: null, index: 0, defaultValue: "" });
-  }
-
-  // Crear nueva tarjeta
   function createCard(cardData) {
     const { title, assignedTo, status, priority, dueDate } = cardData;
     if (!title || title.trim() === "") {
@@ -225,6 +139,8 @@ export default function Kanban() {
       cardId: null,
     });
   }
+
+  //ESTA FUNCIÓN MODIFICA LAS TARJETA YA CREADA A LA QUE SE LE HIZO CLICK
 
   function updateCard(cardId, cardData) {
     const updatedCard = {
@@ -320,6 +236,7 @@ export default function Kanban() {
       columns: { ...state.columns, [state.activeBoardId]: nextCols },
     });
   }
+
   // Handlers DnD HTML5 para columnas
   function handleDragStart(idx) {
     setDragging(idx);
@@ -361,6 +278,7 @@ export default function Kanban() {
                   onDrop={() => handleDrop(idx)}
                   onDragEnd={handleDragEnd}
                 >
+                  {/* AQUÍ SE RENDERIZAN LAS COLUMNAS Y SE LE PASAN LAS PROPS */}
                   <Column
                     col={col}
                     cards={col.cardIds
@@ -378,6 +296,7 @@ export default function Kanban() {
               ))}
               {/* Al final */}
 
+              {/* BOTÓN ENORME DE CREAR NUEVA COLUMNA */}
               <button
                 onClick={() => {
                   setOpenNew(true);
@@ -401,19 +320,8 @@ export default function Kanban() {
             </div>
           </section>
         </main>
-        {/* <ModalCard
-          open={cardPopup.open}
-          defaultValue={cardPopup.defaultValue}
-          onCreate={createCardWithTitle}
-          onClose={() =>
-            setCardPopup({
-              open: false,
-              colId: null,
-              index: 0,
-              defaultValue: "",
-            })
-          }
-        /> */}
+
+        {/* MODAL QUE SE ABRE AL CREAR O TOCAR UNA TARJETA, CON TODAS SUS PROPS */}
         <ModalCard
           open={cardPopup.open}
           defaultValue={cardPopup.defaultValue}
@@ -438,6 +346,7 @@ export default function Kanban() {
         />
       </div>
 
+      {/* AVISO DE ELIMINACIÓN DE COLUMNAS, EL QUE SALE CUANDO LE DAS A LOS TRES PUNTITOS */}
       <ConfirmDialog
         open={askDeleteCol.open}
         title="Eliminar columna"

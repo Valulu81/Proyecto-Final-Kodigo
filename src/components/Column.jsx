@@ -1,3 +1,5 @@
+// ESTE ES EL COMPONENTE DE LAS COLUMNAS, UNA COLUMNA CONTENE CARDS
+
 import { useRef, useState } from "react";
 import { Table2, Plus } from "lucide-react";
 import MenuDots from "./MenuDots.jsx";
@@ -106,6 +108,7 @@ export default function Column({
                     onMoveCard?.(data.fromColId, data.fromIndex, col.id, idx);
                   }}
                 >
+                  {/* ESTAS SON LAS CARDS RENDERIZADAS */}
                   <CardItem
                     card={c}
                     onEdit={() => onAddCard(col.id, idx, true, c)}

@@ -1,15 +1,10 @@
-// export default function CardItem({ card, onEdit }) {
-//     return (
-//         <div className="rounded-xl bg-white p-3 shadow">
-//             <button onClick={()=>onEdit(card)} className="w-full text-left">{card.title || "Sin título"}</button>
-//         </div>
-//     );
-// }
+//ESTA ES LA TARJETA EN SÍ, RECIBE LOS DATOS Y LOS RENDERIZA EN LAS CARDS DENTRO DE LOS TABLEROS
 
 export default function CardItem({ card, onEdit, onDelete }) {
+  //DESESTRUCTURADO OBJETO CON LA INFO DE LA CARD
   const { title, assignedTo, status, priority, dueDate } = card;
 
-  // Colores de prioridad (opcional)
+  // Colores de prioridad
   const priorityColors = {
     Alta: "bg-red-500 text-white",
     Media: "bg-yellow-400 text-black",
@@ -21,9 +16,12 @@ export default function CardItem({ card, onEdit, onDelete }) {
       onClick={() => onEdit(card)}
       className="relative rounded-xl bg-white p-3 shadow cursor-pointer hover:shadow-md transition"
     >
+      {/* BOTÓN PARA BORRAR LA CARD, AQUÍ PODRÍA EJECUTARSE UN MÉTODO PARA ELIMINARLA DE LA DB */}
       <button
         onClick={(e) => {
           e.stopPropagation(); // evita que dispare el onClick de editar
+
+          //ESTE MÉTODO LA BORRA, VERLO EN Kanban.jsx
           onDelete?.(card.id);
         }}
         className="absolute top-0 right-2 text-red-500 hover:text-red-700 font-bold"
@@ -31,6 +29,9 @@ export default function CardItem({ card, onEdit, onDelete }) {
       >
         ✕
       </button>
+
+      {/* DATOS DE LA TARJETA RENDERIZADOS */}
+
       {/* Título */}
       <h4 className="text-center font-semibold mb-2">
         {title || "Sin título"}
