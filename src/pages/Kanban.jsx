@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import SidebarBoards from "../components/SidebarBoards.jsx";
 import Column from "../components/Column.jsx";
-import ModalNewColumn from "../components/ModalNewColumn.jsx";
 import { load, save, uid } from "../data/store.js";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
-import PromptDialog from "../components/PromptDialog.jsx";
-import Navbar from "../components/Navbar.jsx";
 import { Plus } from "lucide-react";
 import ModalCard from "../components/ModalCard.jsx";
+import Tabla from "../pages/Tabla.jsx";
 
 export default function Kanban() {
   const [state, setStateRaw] = useState(load());
@@ -98,6 +96,7 @@ export default function Kanban() {
     }
 
     const cardId = uid("card");
+    const now = new Date().toISOString(); //fecha de creación
 
     const cards = {
       ...state.cards,
@@ -108,19 +107,20 @@ export default function Kanban() {
         status: status || "Pendiente",
         priority: priority || "Media",
         dueDate: dueDate || "",
+        createdAt: now, // tarjeta como objeto
       },
     };
 
     const nextCols = cols.map((c) =>
       c.id === cardPopup.colId
         ? {
-            ...c,
-            cardIds: [
-              ...c.cardIds.slice(0, cardPopup.index),
-              cardId,
-              ...c.cardIds.slice(cardPopup.index),
-            ],
-          }
+          ...c,
+          cardIds: [
+            ...c.cardIds.slice(0, cardPopup.index),
+            cardId,
+            ...c.cardIds.slice(cardPopup.index),
+          ],
+        }
         : c
     );
 
@@ -139,6 +139,7 @@ export default function Kanban() {
       cardId: null,
     });
   }
+
 
   //ESTA FUNCIÓN MODIFICA LAS TARJETA YA CREADA A LA QUE SE LE HIZO CLICK
 
@@ -258,8 +259,6 @@ export default function Kanban() {
 
   return (
     <div className="flex h-screen w-full flex-col">
-      {/* Navbar fijo arriba */}
-      <Navbar />
       {/* Zona de trabajo: alto = pantalla - navbar (h-14 ≈ 56px) */}
       <div className="flex h-[calc(100vh-56px)] w-full">
         {/* Sidebar fijo a la izquierda */}
@@ -345,7 +344,6 @@ export default function Kanban() {
           }
         />
       </div>
-
       {/* AVISO DE ELIMINACIÓN DE COLUMNAS, EL QUE SALE CUANDO LE DAS A LOS TRES PUNTITOS */}
       <ConfirmDialog
         open={askDeleteCol.open}
