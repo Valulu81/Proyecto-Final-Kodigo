@@ -66,7 +66,7 @@ export default function Tabla() {
 
     return (
         <div className="h-screen w-full flex flex-col overflow-hidden">
-            <h1 className="text-2xl font-semibold p-6">📋 Vista Lista de Tareas</h1>
+            <h1 className="text-2xl font-semibold p-6">Vista Lista de Tareas</h1>
             <div className="flex-1 overflow-auto px-6">
                 <table className="min-w-full border border-gray-300 text-lg">
                     <thead className="bg-gray-100 sticky top-0 z-10">
