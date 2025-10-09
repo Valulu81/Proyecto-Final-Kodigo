@@ -4,7 +4,7 @@ import KodigoLogo from "/logo/Kodigo.svg";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import PromptDialog from "./PromptDialog.jsx";
 
-const API_BASE = "https://kanban.localto.net/api/v1";
+import { API_BASE } from "../config/api.js";
 
 export default function SidebarBoards({ state, setState, setActive }) {
   const listRef = useRef(null);

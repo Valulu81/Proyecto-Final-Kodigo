@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import ModalCard from "../components/ModalCard.jsx";
 import ModalNewColumn from "../components/ModalNewColumn.jsx";
 
-const API_BASE = "https://kanban.localto.net/api/v1";
+import { API_BASE } from "../config/api.js";
 
 export default function Kanban() {
   const [state, setState] = useState({
@@ -284,12 +284,21 @@ export default function Kanban() {
 async function updateColumn(colId, { name, color }) {
     if (!state.activeBoardId) return;
     try {
+
+    const colorMap = {
+      "base.purple": "#A855F7",
+      "base.red": "#EF4444",
+      "base.green": "#10B981",
+      "base.blue": "#3B82F6",
+    };
+
+    const colorHex = colorMap[color] || color || "#FFFFFF";
         const body = new URLSearchParams({
             _method: "PATCH",
             // manda ambos nombres
             titulo: name ?? "",
             nombre: name ?? "",
-            color: color || "#FFFFFF",
+            color: colorHex,
             tablero_id: String(state.activeBoardId),
             posicion: String(Math.max(0, cols.findIndex(c => c.id === colId))),
         });
@@ -299,7 +308,7 @@ async function updateColumn(colId, { name, color }) {
 
         const res = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
             body: body.toString(),
         });
 

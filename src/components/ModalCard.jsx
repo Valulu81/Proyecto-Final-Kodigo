@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const API_BASE = "https://kanban.localto.net/api/v1";
+import { API_BASE } from "../config/api.js";
 
 export default function ModalCard({
   open,
