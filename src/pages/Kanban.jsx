@@ -363,25 +363,31 @@ async function updateColumn(colId, { name, color }) {
 }
 
   // Eliminar columna
-  async function deleteColumn(colId) {
-    if (!state.activeBoardId) return;
+  // Eliminar columna (solo ejecuta la acción, ConfirmDialog se maneja en MenuDots)
+async function deleteColumn(colId) {
+  if (!state.activeBoardId) return;
 
-    try {
-      const res = await fetch(`${API_BASE}/columnas/${colId}`, {
-        method: "DELETE"
-      });
+  try {
+    const res = await fetch(`${API_BASE}/columnas/${colId}`, {
+      method: "DELETE",
+    });
 
-      if (!res.ok) throw new Error("Error eliminando columna");
+    if (!res.ok) throw new Error("Error eliminando columna");
 
-      const nextCols = cols.filter(c => c.id !== colId);
-      setStateAndSync({
-        ...state,
-        columns: { ...state.columns, [state.activeBoardId]: nextCols }
-      });
-    } catch (err) {
-      console.error("Error eliminando columna:", err);
-    }
+    const nextCols = (state.columns[state.activeBoardId] || []).filter(
+      (c) => c.id !== colId
+    );
+
+    setStateAndSync({
+      ...state,
+      columns: { ...state.columns, [state.activeBoardId]: nextCols },
+    });
+  } catch (err) {
+    console.error("Error eliminando columna:", err);
+    // ❌ Sin confirm() ni alert(), solo log
   }
+}
+
 
   
   async function handleCreateColumn({ name, color }) {
