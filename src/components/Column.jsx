@@ -12,6 +12,7 @@ export default function Column({
   onAddCard,
   onRename,
   onDelete,
+  onDeleteCard,
   onColor,
   onLongInsert,
   onUpdate,
@@ -102,18 +103,7 @@ function handleSave({ name, color }) {
               <CardItem
                 card={c}
                 onEdit={() => onAddCard(col.id, idx, true, c)}
-                onDelete={(cardId) => {
-                  const nextCols = col.cardIds.filter((id) => id !== cardId);
-                  const updatedCols = {
-                    ...state.columns,
-                    [state.activeBoardId]: state.columns[state.activeBoardId].map((colItem) =>
-                      colItem.id === col.id ? { ...colItem, cardIds: nextCols } : colItem
-                    ),
-                  };
-                  const updatedCards = { ...state.cards };
-                  delete updatedCards[cardId];
-                  setState({ ...state, columns: updatedCols, cards: updatedCards });
-                }}
+                onDelete={(cardId) => onDeleteCard?.(cardId, col.id)}
               />
             </div>
           ))}

@@ -4,11 +4,12 @@ export default function CardItem({ card, onEdit, onDelete }) {
   //DESESTRUCTURADO OBJETO CON LA INFO DE LA CARD
   const { title, assignedTo, status, priority, dueDate } = card;
 
-  // Colores de prioridad
+  const p = String(priority || "media").toLowerCase();
+  const label = p.charAt(0).toUpperCase() + p.slice(1); // "Media"
   const priorityColors = {
-    Alta: "bg-red-500 text-white",
-    Media: "bg-yellow-400 text-black",
-    Baja: "bg-green-500 text-white",
+    alta: "bg-red-500 text-white",
+    media: "bg-yellow-400 text-black",
+    baja: "bg-green-500 text-white",
   };
 
   return (
@@ -21,7 +22,7 @@ export default function CardItem({ card, onEdit, onDelete }) {
         onClick={(e) => {
           e.stopPropagation(); // evita que dispare el onClick de editar
 
-          //ESTE MÉTODO LA BORRA, VERLO EN Kanban.jsx
+          //ESTE MÉTODO LA BORRA, VERLO EN Kanban.jsx          //ESTE MÉTODO LA BORRA, VERLO EN Kanban.jsx
           onDelete?.(card.id);
         }}
         className="absolute top-0 right-2 text-red-500 hover:text-red-700 font-bold"
@@ -52,12 +53,8 @@ export default function CardItem({ card, onEdit, onDelete }) {
       {/* Prioridad */}
       <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
         <span className="font-medium">Prioridad:</span>
-        <span
-          className={`px-2 py-[2px] rounded-full text-xs font-semibold ${
-            priorityColors[priority] || "bg-gray-300 text-black"
-          }`}
-        >
-          {priority || "Media"}
+        <span className={`px-2 py-[2px] rounded-full text-xs font-semibold ${priorityColors[p] || "bg-gray-300 text-black"}`}>
+          {label}
         </span>
       </p>
 

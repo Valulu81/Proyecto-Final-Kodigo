@@ -15,12 +15,15 @@ export default function ModalCard({
   onClose,
   cardId = null,
   colId = null,
+  insertIndex = 0,
 }) {
   const [titleState, setTitleState] = useState(defaultValue);
   const [assignedToState, setAssignedToState] = useState(assignedTo);
   const [statusState, setStatusState] = useState(status);
   const [priorityState, setPriorityState] = useState(priority);
   const [dueDateState, setDueDateState] = useState(dueDate);
+  const [assignedByState, setAssignedByState] = useState("");         // usuario_asignador
+  const [assignDateState, setAssignDateState] = useState("");         // fecha_asignacion
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef(null);
@@ -32,6 +35,8 @@ export default function ModalCard({
       setStatusState(status);
       setPriorityState(priority);
       setDueDateState(dueDate);
+      setAssignedByState((v) => v || "Sistema");                       // valor por defecto
+      setAssignDateState((v) => v || new Date().toISOString().slice(0,10)); // YYYY-MM-DD
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [open, defaultValue, assignedTo, status, priority, dueDate]);
@@ -47,13 +52,14 @@ export default function ModalCard({
       const payload = {
         columna_id: colId,
         nombre: cardData.title,
-        descripcion: cardData.title, // Usar título como descripción por ahora
-        usuario_asignado: cardData.assignedTo,
-        estado: cardData.status,
-        prioridad: cardData.priority.toLowerCase(),
+        descripcion: cardData.title,
+        usuario_asignado: cardData.assignedTo ?? "",
+        usuario_asignador: assignedByState || "Sistema",
+        prioridad: (cardData.priority ?? "media").toLowerCase(), 
+        fecha_asignacion: assignDateState || new Date().toISOString().slice(0,10),
         fecha_limite: cardData.dueDate || null,
-        posicion: 0,
-        avance: cardData.status === "Completado" ? 100 : 0
+        posicion: String(insertIndex ?? 0),
+        avance: cardData.status === "Completado" ? 100 : cardData.status === "En progreso" ? 50 : 0,
       };
 
       console.log("Creando tarea con payload:", payload);
@@ -84,11 +90,11 @@ export default function ModalCard({
       const payload = {
         nombre: cardData.title,
         descripcion: cardData.title,
-        usuario_asignado: cardData.assignedTo,
-        estado: cardData.status,
-        prioridad: cardData.priority.toLowerCase(),
+        usuario_asignado: cardData.assignedTo ?? "",
+        usuario_asignador: assignedByState || "Sistema",
+        prioridad: (cardData.priority ?? "media").toLowerCase(),
         fecha_limite: cardData.dueDate || null,
-        avance: cardData.status === "Completado" ? 100 : 0
+        avance: cardData.status === "Completado" ? 100 : cardData.status === "En progreso" ? 50 : 0,
       };
 
       console.log("Actualizando tarea:", taskId, "con payload:", payload);
@@ -142,11 +148,15 @@ export default function ModalCard({
         // Modo creación
         const newTask = await createTaskInAPI(data);
         if (newTask) {
-          // Pasar los datos completos de la tarea creada
+          const av = Number(newTask.avance ?? 0);
           onCreate?.({
-            ...data,
             id: newTask.id,
-            createdAt: newTask.created_at || new Date().toISOString(),
+            title: newTask.nombre ?? data.title,
+            assignedTo: newTask.usuario_asignado ?? data.assignedTo ?? "",
+            status: av >= 100 ? "Completado" : av > 0 ? "En progreso" : "Pendiente",
+            priority: (newTask.prioridad ?? data.priority ?? "media").toLowerCase(),
+            dueDate: newTask.fecha_limite ?? data.dueDate ?? null,
+            createdAt: newTask.created_at ?? new Date().toISOString(),
           });
         } else {
           alert("Error al crear la tarea");
@@ -199,7 +209,15 @@ export default function ModalCard({
           placeholder="Nombre del usuario"
           disabled={loading}
         />
-
+        <label className="mb-1 block text-sm font-medium">Usuario asignador</label>
+        <input
+          value={assignedByState}
+          onChange={(e) => setAssignedByState(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="mb-4 w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Quién asigna la tarea"
+          disabled={loading}
+        />
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Estado</label>
@@ -230,6 +248,15 @@ export default function ModalCard({
           </div>
         </div>
 
+        <label className="mb-1 block text-sm font-medium">Fecha asignación</label>
+        <input
+          type="date"
+          value={assignDateState}
+          onChange={(e) => setAssignDateState(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="mb-4 w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading}
+        />
         <label className="mb-1 block text-sm font-medium">Fecha límite</label>
         <input
           type="date"
