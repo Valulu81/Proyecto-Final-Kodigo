@@ -1,30 +1,67 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import KodigoLogo from "/logo/Kodigo.svg";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import PromptDialog from "./PromptDialog.jsx";
 
-export default function SidebarBoards({ state, setState }) {
+const API_BASE = "https://kanban.localto.net/api/v1";
+
+export default function SidebarBoards({ state, setState, setActive }) {
   const listRef = useRef(null);
   const active = state.activeBoardId;
+
   const [askDelete, setAskDelete] = useState(false);
   const [askRename, setAskRename] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  function setActive(id) {
-    const next = { ...state, activeBoardId: id };
-    setState(next);
-  }
+  // ✅ Cargar tableros desde la API
+  useEffect(() => {
+    fetch(`${API_BASE}/tableros`)
+      .then((res) => res.json())
+      .then((data) => {
+        setState((prev) => ({
+          ...prev,
+          boards: data,
+          activeBoardId: data[0]?.id || null,
+        }));
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error al cargar tableros:", error);
+        setLoading(false);
+      });
+  }, []);
 
-  function addBoard() {
-    const id = crypto.randomUUID();
-    const name = `Tablero ${state.boards.length + 1}`;
-    const next = {
-      ...state,
-      boards: [...state.boards, { id, name }],
-      columns: { ...state.columns, [id]: [] },
-      activeBoardId: id,
-    };
-    setState(next);
+  // ✅ Crear tablero con POST al API
+  async function addBoard() {
+    try {
+      const name = `Tablero ${state.boards.length + 1}`;
+      const res = await fetch(
+        `${API_BASE}/tableros?nombre=${encodeURIComponent(name)}`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) throw new Error("Error al crear tablero");
+
+      // Refrescar lista
+      const newList = await fetch(`${API_BASE}/tableros`).then((r) =>
+        r.json()
+      );
+
+      const newBoardId = newList[newList.length - 1]?.id;
+      
+      setState((prev) => ({
+        ...prev,
+        boards: newList,
+        activeBoardId: newBoardId || prev.activeBoardId,
+      }));
+
+      if (newBoardId) {
+        setActive(newBoardId);
+      }
+    } catch (err) {
+      console.error("Error al crear tablero:", err);
+    }
   }
 
   function renameBoard() {
@@ -36,6 +73,81 @@ export default function SidebarBoards({ state, setState }) {
     if (!active) return;
     setAskDelete(true);
   }
+
+  // ✅ Eliminar tablero en la API
+  async function handleDeleteBoard() {
+    try {
+      const res = await fetch(`${API_BASE}/tableros/${active}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) throw new Error("Error al eliminar tablero");
+
+      // Refrescar lista desde API
+      const newList = await fetch(`${API_BASE}/tableros`).then(r => r.json());
+      
+      const boards = newList;
+      const fallback = boards[0]?.id || null;
+      
+      // Limpiar las columnas del tablero eliminado
+      const { [active]: _removed, ...restCols } = state.columns;
+      
+      const next = {
+        ...state,
+        boards,
+        columns: restCols,
+        activeBoardId: fallback,
+      };
+      
+      setState(next);
+      
+      // Si hay un tablero fallback, activarlo
+      if (fallback) {
+        setActive(fallback);
+      }
+      
+    } catch (err) {
+      console.error("Error al eliminar tablero:", err);
+      alert("Error al eliminar el tablero");
+    }
+  }
+
+  // ✅ Renombrar tablero en la API
+  async function handleRenameBoard(newName) {
+    try {
+      const res = await fetch(`${API_BASE}/tableros/${active}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: newName
+        })
+      });
+
+      if (!res.ok) throw new Error("Error al renombrar tablero");
+
+      // Refrescar lista desde API
+      const newList = await fetch(`${API_BASE}/tableros`).then(r => r.json());
+      
+      const next = {
+        ...state,
+        boards: newList,
+      };
+      
+      setState(next);
+      
+    } catch (err) {
+      console.error("Error al renombrar tablero:", err);
+      alert("Error al renombrar el tablero");
+    }
+  }
+
+  // ✅ Función para manejar el cambio de tablero
+  const handleBoardClick = (boardId) => {
+    console.log("Cambiando a tablero:", boardId);
+    setActive(boardId);
+  };
 
   return (
     <aside className="flex h-full w-40 flex-col bg-[#120C24] text-white">
@@ -88,19 +200,25 @@ export default function SidebarBoards({ state, setState }) {
         ref={listRef}
         className="flex-1 overflow-y-auto px-4 pb-8 space-y-2 text-sm"
       >
-        {state.boards.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => setActive(b.id)}
-            className={`block w-full rounded-md px-3 py-2 text-left ${
-              active === b.id
-                ? "bg-white text-[#120C24] font-semibold"
-                : "hover:bg-white/10"
-            }`}
-          >
-            {b.name}
-          </button>
-        ))}
+        {loading ? (
+          <div className="text-white/60 text-center mt-4">Cargando...</div>
+        ) : state.boards.length === 0 ? (
+          <div className="text-white/60 text-center mt-4">No hay tableros</div>
+        ) : (
+          state.boards.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => handleBoardClick(b.id)}
+              className={`block w-full rounded-md px-3 py-2 text-left ${
+                active === b.id
+                  ? "bg-white text-[#120C24] font-semibold"
+                  : "hover:bg-white/10"
+              }`}
+            >
+              {b.nombre || b.name}
+            </button>
+          ))
+        )}
       </div>
 
       {/* logo inferior */}
@@ -111,25 +229,17 @@ export default function SidebarBoards({ state, setState }) {
           className="h-24 opacity-95 transition-transform duration-200 hover:scale-105 hover:opacity-100"
         />
       </div>
+
       {/* --- Modales --- */}
       <ConfirmDialog
         open={askDelete}
         title="Eliminar tablero"
-        description="Esta acción no se puede deshacer."
+        description="¿Estás seguro de que quieres eliminar este tablero? Esta acción no se puede deshacer."
         confirmText="Eliminar"
         tone="danger"
         onCancel={() => setAskDelete(false)}
         onConfirm={() => {
-          const boards = state.boards.filter((b) => b.id !== active);
-          const fallback = boards[0]?.id || null;
-          const { [active]: _removed, ...restCols } = state.columns;
-          const next = {
-            ...state,
-            boards,
-            columns: restCols,
-            activeBoardId: fallback,
-          };
-          setState(next);
+          handleDeleteBoard();
           setAskDelete(false);
         }}
       />
@@ -138,7 +248,7 @@ export default function SidebarBoards({ state, setState }) {
         open={askRename}
         title="Renombrar tablero"
         label="Nuevo nombre"
-        initialValue={state.boards.find((b) => b.id === active)?.name || ""}
+        initialValue={state.boards.find((b) => b.id === active)?.nombre || ""}
         onCancel={() => setAskRename(false)}
         onSubmit={(value) => {
           const name = value?.trim();
@@ -146,13 +256,7 @@ export default function SidebarBoards({ state, setState }) {
             setAskRename(false);
             return;
           }
-          const next = {
-            ...state,
-            boards: state.boards.map((b) =>
-              b.id === active ? { ...b, name } : b
-            ),
-          };
-          setState(next);
+          handleRenameBoard(name);
           setAskRename(false);
         }}
       />
