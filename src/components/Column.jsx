@@ -61,13 +61,9 @@ function handleSave({ name, color }) {
           </div>
           <div className="flex h-7 items-center">
             <MenuDots
-              onEdit={() => setShowEdit(true)}
-              onDelete={() => {
-                if (confirm("¿Desea eliminar esta columna?")) {
-                  onDelete(col.id);
-                }
-              }}
-            />
+  onEdit={() => setShowEdit(true)}
+  onDelete={() => onDelete(col.id)} // ✅ sin confirm() del navegador
+/>
           </div>
         </div>
       </div>

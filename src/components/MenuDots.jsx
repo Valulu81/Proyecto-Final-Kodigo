@@ -1,17 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import { Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 
 export default function MenuDots({ onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const ref = useRef(null);
 
-  // Cerrar al hacer clic fuera o presionar Esc
+  // Cerrar menú/confirm al hacer clic fuera o presionar Esc
   useEffect(() => {
     function handleClickOutside(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     }
     function onEsc(e) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setConfirmOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", onEsc);
@@ -21,9 +26,20 @@ export default function MenuDots({ onEdit, onDelete }) {
     };
   }, []);
 
-  const select = (fn) => {
-    fn?.();
+  const handleEdit = () => {
     setOpen(false);
+    onEdit?.();
+  };
+
+  const handleRequestDelete = () => {
+    // Cierra el menú y muestra el diálogo
+    setOpen(false);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setConfirmOpen(false);
+    onDelete?.(); // Ejecuta la eliminación (ya sin prompts adicionales)
   };
 
   return (
@@ -44,20 +60,31 @@ export default function MenuDots({ onEdit, onDelete }) {
         >
           <button
             role="menuitem"
-            onClick={() => select(onEdit)}
+            onClick={handleEdit}
             className="flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-stone-100"
           >
             <Pencil size={16} /> Editar
           </button>
           <button
             role="menuitem"
-            onClick={() => select(onDelete)}
+            onClick={handleRequestDelete}
             className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-red-600 hover:bg-stone-100"
           >
             <Trash2 size={16} /> Eliminar Columna
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar columna"
+        description="¿Estás seguro de que deseas eliminar esta columna? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        tone="danger"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
