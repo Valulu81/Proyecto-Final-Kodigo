@@ -12,6 +12,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
 
   const [askDelete, setAskDelete] = useState(false);
   const [askRename, setAskRename] = useState(false);
+  const [askAdd, setAskAdd] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // ✅ Cargar tableros desde la API
@@ -64,6 +65,11 @@ export default function SidebarBoards({ state, setState, setActive }) {
     }
   }
 
+  function addBoard() {
+    if (!active) return;
+    setAskAdd(true);
+  }
+
   function renameBoard() {
     if (!active) return;
     setAskRename(true);
@@ -73,6 +79,40 @@ export default function SidebarBoards({ state, setState, setActive }) {
     if (!active) return;
     setAskDelete(true);
   }
+
+    // ✅ Mostrar prompt antes de agregar
+    function addBoard() {
+      setAskAdd(true);
+    }
+
+    // ✅ Crear tablero con nombre personalizado
+    async function handleAddBoard(name) {
+      try {
+        const res = await fetch(
+          `${API_BASE}/tableros?nombre=${encodeURIComponent(name)}`,
+          { method: "POST" }
+        );
+
+        if (!res.ok) throw new Error("Error al crear tablero");
+
+        // Refrescar lista desde la API
+        const newList = await fetch(`${API_BASE}/tableros`).then((r) => r.json());
+        const newBoardId = newList[newList.length - 1]?.id;
+
+        setState((prev) => ({
+          ...prev,
+          boards: newList,
+          activeBoardId: newBoardId || prev.activeBoardId,
+        }));
+
+        if (newBoardId) {
+          setActive(newBoardId);
+        }
+      } catch (err) {
+        console.error("Error al crear tablero:", err);
+        alert("No se pudo crear el tablero");
+      }
+    }
 
   // ✅ Eliminar tablero en la API
   async function handleDeleteBoard() {
@@ -155,6 +195,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
       <div className="flex flex-col items-center space-y-6 pt-6">
         <button
           onClick={addBoard}
+          disabled={!active}
           className="flex flex-col items-center text-xs hover:opacity-80"
         >
           <Plus size={22} strokeWidth={2} />
@@ -260,6 +301,25 @@ export default function SidebarBoards({ state, setState, setActive }) {
           setAskRename(false);
         }}
       />
+
+      <PromptDialog
+        open={askAdd}
+        title="Nuevo tablero"
+        label="Nombre del tablero"
+        submitText="Crear"
+        cancelText="Cancelar"
+        onCancel={() => setAskAdd(false)}
+        onSubmit={(value) => {
+          const name = value?.trim();
+          if (!name) {
+            setAskAdd(false);
+            return;
+          }
+          handleAddBoard(name);
+          setAskAdd(false);
+        }}
+      />
+
     </aside>
   );
 }

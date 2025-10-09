@@ -59,11 +59,11 @@ export default function Kanban() {
     try {
       console.log("Fetching columnas para boardId:", boardId); // Debug
       const res = await fetch(`${API_BASE}/columnas?tablero_id=${boardId}`);
-      
+
       if (!res.ok) {
         throw new Error(`Error HTTP: ${res.status}`);
       }
-      
+
       const apiCols = await res.json();
       console.log("Columnas recibidas:", apiCols); // Debug
 
@@ -103,9 +103,9 @@ export default function Kanban() {
 
   function setActive(id) {
     console.log("Cambiando tablero activo a:", id); // Debug
-    setState((prev) => ({ 
-      ...prev, 
-      activeBoardId: id 
+    setState((prev) => ({
+      ...prev,
+      activeBoardId: id
     }));
   }
 
@@ -187,13 +187,13 @@ export default function Kanban() {
       const nextCols = cols.map((c) =>
         c.id === cardPopup.colId
           ? {
-              ...c,
-              cardIds: [
-                ...c.cardIds.slice(0, cardPopup.index),
-                normalized.id,
-                ...c.cardIds.slice(cardPopup.index),
-              ],
-            }
+            ...c,
+            cardIds: [
+              ...c.cardIds.slice(0, cardPopup.index),
+              normalized.id,
+              ...c.cardIds.slice(cardPopup.index),
+            ],
+          }
           : c
       );
       setStateAndSync({
@@ -218,13 +218,13 @@ export default function Kanban() {
       ...state,
       cards: { ...state.cards, [cardId]: updatedCard },
     });
-    setCardPopup({ 
-      open: false, 
-      colId: null, 
-      index: 0, 
-      defaultValue: "", 
-      editMode: false, 
-      cardId: null 
+    setCardPopup({
+      open: false,
+      colId: null,
+      index: 0,
+      defaultValue: "",
+      editMode: false,
+      cardId: null
     });
   }
 
@@ -281,63 +281,63 @@ export default function Kanban() {
   }
 
   // Editar columna
-async function updateColumn(colId, { name, color }) {
+  async function updateColumn(colId, { name, color }) {
     if (!state.activeBoardId) return;
     try {
 
-    const colorMap = {
-      "base.purple": "#A855F7",
-      "base.red": "#EF4444",
-      "base.green": "#10B981",
-      "base.blue": "#3B82F6",
-    };
+      const colorMap = {
+        "base.purple": "#A855F7",
+        "base.red": "#EF4444",
+        "base.green": "#10B981",
+        "base.blue": "#3B82F6",
+      };
 
-    const colorHex = colorMap[color] || color || "#FFFFFF";
-        const body = new URLSearchParams({
-            _method: "PATCH",
-            // manda ambos nombres
-            titulo: name ?? "",
-            nombre: name ?? "",
-            color: colorHex,
-            tablero_id: String(state.activeBoardId),
-            posicion: String(Math.max(0, cols.findIndex(c => c.id === colId))),
-        });
+      const colorHex = colorMap[color] || color || "#FFFFFF";
+      const body = new URLSearchParams({
+        _method: "PATCH",
+        // manda ambos nombres
+        titulo: name ?? "",
+        nombre: name ?? "",
+        color: colorHex,
+        tablero_id: String(state.activeBoardId),
+        posicion: String(Math.max(0, cols.findIndex(c => c.id === colId))),
+      });
 
-        const url = `${API_BASE}/columnas/${colId}`;
-        console.log("[UpdateColumna] ->", url, Object.fromEntries(body));
+      const url = `${API_BASE}/columnas/${colId}`;
+      console.log("[UpdateColumna] ->", url, Object.fromEntries(body));
 
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
-            body: body.toString(),
-        });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
+        body: body.toString(),
+      });
 
-        const txt = await res.text();
-        if (!res.ok) {
-            console.error("[UpdateColumna] HTTP", res.status, txt);
-            throw new Error(`Error actualizando columna (${res.status})`);
-        }
+      const txt = await res.text();
+      if (!res.ok) {
+        console.error("[UpdateColumna] HTTP", res.status, txt);
+        throw new Error(`Error actualizando columna (${res.status})`);
+      }
 
-        // intenta parsear, si no, usa lo enviado
-        let updatedCol;
-        try { updatedCol = JSON.parse(txt); } catch { updatedCol = {}; }
+      // intenta parsear, si no, usa lo enviado
+      let updatedCol;
+      try { updatedCol = JSON.parse(txt); } catch { updatedCol = {}; }
 
-        const normalized = {
-            id: updatedCol.id ?? colId,
-            name: updatedCol.titulo ?? updatedCol.nombre ?? name ?? "",
-            color: updatedCol.color ?? color ?? "#FFFFFF",
-            cardIds: cols.find(c => c.id === colId)?.cardIds ?? [],
-        };
+      const normalized = {
+        id: updatedCol.id ?? colId,
+        name: updatedCol.titulo ?? updatedCol.nombre ?? name ?? "",
+        color: updatedCol.color ?? color ?? "#FFFFFF",
+        cardIds: cols.find(c => c.id === colId)?.cardIds ?? [],
+      };
 
-        const nextCols = cols.map(c => (c.id === colId ? normalized : c));
-        setStateAndSync({
-            ...state,
-            columns: { ...state.columns, [state.activeBoardId]: nextCols }
-        });
+      const nextCols = cols.map(c => (c.id === colId ? normalized : c));
+      setStateAndSync({
+        ...state,
+        columns: { ...state.columns, [state.activeBoardId]: nextCols }
+      });
     } catch (err) {
-        console.error("Error actualizando columna:", err);
+      console.error("Error actualizando columna:", err);
     }
-}
+  }
 
   // Eliminar columna
   async function deleteColumn(colId) {
@@ -360,7 +360,7 @@ async function updateColumn(colId, { name, color }) {
     }
   }
 
-  
+
   async function handleCreateColumn({ name, color }) {
     if (!state.activeBoardId) return;
 
@@ -418,14 +418,14 @@ async function updateColumn(colId, { name, color }) {
   return (
     <div className="flex h-screen w-full flex-col">
       <div className="flex h-[calc(100vh-56px)] w-full">
-        <SidebarBoards 
-          state={state} 
-          setState={setStateAndSync} 
+        <SidebarBoards
+          state={state}
+          setState={setStateAndSync}
           setActive={setActive}
         />
-        <main className="flex h-full flex-1 flex-col overflow-hidden">
+        <main className="flex  flex-1 flex-col overflow-hidden">
           <section className="flex-1 overflow-x-auto overflow-y-hidden">
-            <div className="flex h-full gap-6 p-6">
+            <div className="flex gap-6 p-6">
               {cols.map((col, idx) => (
                 <div
                   key={col.id}
@@ -441,8 +441,8 @@ async function updateColumn(colId, { name, color }) {
                     cards={col.cardIds.map((id) => state.cards[id]).filter(Boolean)}
                     onAddCard={addCard}
                     onMoveCard={moveCard}
-                    onUpdate={updateColumn}     
-                    onDelete={deleteColumn} 
+                    onUpdate={updateColumn}
+                    onDelete={deleteColumn}
                     state={state}
                     setState={setStateAndSync}
                   />
@@ -450,13 +450,15 @@ async function updateColumn(colId, { name, color }) {
               ))}
 
               <button onClick={() => setNewColumnModal(true)} disabled={!state.activeBoardId}>
-                <div className="flex h-full items-center justify-center rounded-3xl border-4 border-base-dark bg-white">
+                <div className="w-[280px] h-[770px] shrink-0 flex items-center justify-center rounded-3xl border-4 border-base-dark bg-white">
                   <div className="flex flex-col items-center gap-2 text-base-dark">
                     <Plus size={40} strokeWidth={2.5} />
                     <span className="text-2xl font-semibold text-center">Crear Nueva Columna</span>
                   </div>
                 </div>
               </button>
+
+
             </div>
           </section>
         </main>
@@ -472,13 +474,13 @@ async function updateColumn(colId, { name, color }) {
           colId={cardPopup.colId}
           onCreate={createCard}
           onUpdate={updateCard}
-          onClose={() => setCardPopup({ 
-            open: false, 
-            colId: null, 
-            index: 0, 
-            defaultValue: "", 
-            editMode: false, 
-            cardId: null 
+          onClose={() => setCardPopup({
+            open: false,
+            colId: null,
+            index: 0,
+            defaultValue: "",
+            editMode: false,
+            cardId: null
           })}
         />
         <ModalNewColumn
