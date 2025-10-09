@@ -293,74 +293,71 @@ async function createColumn({ name, color }) {
   }
 }
 
-  // Editar columna
+// Editar columna
 async function updateColumn(colId, { name, color }) {
-    if (!state.activeBoardId) return;
-    try {
+  if (!state.activeBoardId) return;
 
+  try {
+    // Mapeo de colores Tailwind → Hex
     const colorMap = {
+      "base.dark": "#1E1B4B",
       "base.purple": "#A855F7",
-      "base.red": "#EF4444",
-      "base.green": "#10B981",
       "base.blue": "#3B82F6",
+      "base.orange": "#F97316",
+      "base.yellow": "#FACC15",
+      "base.teal": "#14B8A6",
     };
 
     const colorHex = colorMap[color] || color || "#FFFFFF";
-        const body = new URLSearchParams({
-            _method: "PATCH",
-            // manda ambos nombres
-            titulo: name ?? "",
-            nombre: name ?? "",
-            color: colorHex,
-            tablero_id: String(state.activeBoardId),
-            posicion: String(Math.max(0, cols.findIndex(c => c.id === colId))),
-        });
 
-        const url = `${API_BASE}/columnas/${colId}`;
-        console.log("[UpdateColumna] ->", url, Object.fromEntries(body));
-        console.log("[UpdateColumna:request]", {
-          url,
-          body: Object.fromEntries(body),
-          resolvedColorHex: colorHex,
-        });
+    const body = {
+      titulo: name ?? "",
+      nombre: name ?? "",
+      color: colorHex,
+      tablero_id: state.activeBoardId,
+      posicion: Math.max(0, cols.findIndex((c) => c.id === colId)),
+    };
 
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
-            body: body.toString(),
-        });
+    console.log("[UpdateColumna] PATCH:", { colId, body });
 
-        const txt = await res.text();
-    console.log("[UpdateColumna:response]", { status: res.status, ok: res.ok, raw: txt });
+    const res = await fetch(`${API_BASE}/columnas/${colId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
     if (!res.ok) {
-            throw new Error(`Error actualizando columna (${res.status})`);
-        }
-
-        // intenta parsear, si no, usa lo enviado
-        let updatedCol;
-        try { updatedCol = JSON.parse(txt); } catch { updatedCol = {}; }
-
-        console.log("[UpdateColumna:parsed]", updatedCol);
-
-        const normalized = {
-            id: updatedCol.id ?? colId,
-            name: updatedCol.titulo ?? updatedCol.nombre ?? name ?? "",
-            color: updatedCol.color ?? colorHex,
-            cardIds: cols.find(c => c.id === colId)?.cardIds ?? [],
-        };
-        
-        console.log("[UpdateColumna:normalized]", normalized);
-
-        const nextCols = cols.map(c => (c.id === colId ? normalized : c));
-        setStateAndSync({
-            ...state,
-            columns: { ...state.columns, [state.activeBoardId]: nextCols }
-        });
-        fetchColumns(state.activeBoardId);
-    } catch (err) {
-        console.error("[UpdateColumna:error]", err);
+      const txt = await res.text();
+      console.error("[UpdateColumna] Error HTTP:", res.status, txt);
+      throw new Error(`Error actualizando columna (${res.status})`);
     }
+
+    const updatedCol = await res.json();
+    console.log("[UpdateColumna] Respuesta:", updatedCol);
+
+    const normalized = {
+      id: updatedCol.id ?? colId,
+      name: updatedCol.titulo ?? updatedCol.nombre ?? name ?? "",
+      color: updatedCol.color ?? colorHex,
+      cardIds: cols.find((c) => c.id === colId)?.cardIds ?? [],
+    };
+
+    const nextCols = cols.map((c) => (c.id === colId ? normalized : c));
+
+    setStateAndSync({
+      ...state,
+      columns: { ...state.columns, [state.activeBoardId]: nextCols },
+    });
+
+    console.log("[UpdateColumna] Actualizado en estado:", normalized);
+  } catch (err) {
+    console.error("[UpdateColumna:error]", err);
+  }
 }
+
 
   // Eliminar columna
   // Eliminar columna (solo ejecuta la acción, ConfirmDialog se maneja en MenuDots)
@@ -390,59 +387,68 @@ async function deleteColumn(colId) {
 
 
   
-  async function handleCreateColumn({ name, color }) {
-    if (!state.activeBoardId) return;
+// Crear columna (usada por el ModalNewColumn -> onCreate)
+async function handleCreateColumn({ name, color }) {
+  if (!state.activeBoardId) return;
 
-    const colorMap = {
-      "base.purple": "#A855F7",
-      "base.red": "#EF4444",
-      "base.green": "#10B981",
-      "base.blue": "#3B82F6",
-    };
+  // Mapa completo de tokens a HEX (ajusta hex si deseas otros valores)
+  const colorMap = {
+    "base.dark": "#1E1B4B",
+    "base.purple": "#A855F7",
+    "base.blue": "#3B82F6",
+    "base.orange": "#F97316",
+    "base.yellow": "#FACC15",
+    "base.teal": "#10B981",
+    "base.green": "#10B981",
+    "base.red": "#EF4444",
+  };
 
-    const colorHex = colorMap[color] || "#FFFFFF";
+  // Acepta: token -> mapear, o si ya es un hex usarlo, o fallback
+  const colorHex =
+    colorMap[color] || (typeof color === "string" && color.startsWith("#") ? color : "#FFFFFF");
 
-    const payload = {
-      tablero_id: state.activeBoardId,
-      titulo: name,
-      posicion: state.columns[state.activeBoardId]?.length || 0,
-      color: colorHex,
-    };
+  const payload = {
+    tablero_id: state.activeBoardId,
+    titulo: name,
+    posicion: state.columns[state.activeBoardId]?.length || 0,
+    color: colorHex,
+  };
 
-    console.log("[CrearColumna] POST /columnas payload:", payload);
+  console.log("[CrearColumna] POST /columnas payload:", payload);
 
-    try {
-      const res = await fetch(`${API_BASE}/columnas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+  try {
+    const res = await fetch(`${API_BASE}/columnas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        console.error("[CrearColumna] HTTP", res.status, txt);
-        throw new Error(`Error creando columna (${res.status})`);
-      }
-
-      const newCol = await res.json();
-      const normalized = {
-        id: newCol.id,
-        name: newCol.titulo ?? newCol.nombre ?? newCol.name ?? "",
-        color: newCol.color || "#FFFFFF",
-        cardIds: [],
-      };
-      console.log("[CrearColumna] OK respuesta:", newCol);
-
-      const nextCols = [...(state.columns[state.activeBoardId] || []), normalized];
-      setStateAndSync({
-        ...state,
-        columns: { ...state.columns, [state.activeBoardId]: nextCols },
-      });
-      setNewColumnModal(false);
-    } catch (err) {
-      console.error("Error creando columna:", err);
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.error("[CrearColumna] HTTP", res.status, txt);
+      throw new Error(`Error creando columna (${res.status})`);
     }
+
+    const newCol = await res.json();
+    const normalized = {
+      id: newCol.id,
+      name: newCol.titulo ?? newCol.nombre ?? newCol.name ?? "",
+      color: newCol.color || colorHex,
+      cardIds: [],
+    };
+    console.log("[CrearColumna] OK respuesta:", newCol);
+
+    const nextCols = [...(state.columns[state.activeBoardId] || []), normalized];
+    setStateAndSync({
+      ...state,
+      columns: { ...state.columns, [state.activeBoardId]: nextCols },
+    });
+    setNewColumnModal(false);
+  } catch (err) {
+    console.error("Error creando columna:", err);
   }
+}
+
 
   return (
     <div className="flex h-screen w-full flex-col">
