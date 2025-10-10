@@ -18,7 +18,7 @@
 <p><li><a href='http://www.linkedin.com/in/jennifer-nieto-b02ba0362'>Jennifer Alejandra Nieto Portillo</a></li></p>
 <p><li><a href='https://www.linkedin.com/in/luis-turcios-85316531/'>Luis Antonio Turcios Álvarez</a></li></p>
 <p><li><a href='https://www.linkedin.com/in/gabriel-campos-salamanca-050579337/'>Gabriel Alexander Campos Salamanca</a></li></p>
-<p><li><a href='mailto:Maikpa04@gmail.com'>Michael Steven Palacios Aguilar</a></li></p>
+<p><li><a href='https://www.linkedin.com/in/michael-palacios-2a038b285'>Michael Steven Palacios Aguilar</a></li></p>
 <p><li><a href='https://github.com/MadeInRodri'>Rodrigo Alexis Mejía Rivas</a></li></p>
 <hr/>
 <h3>Objetivos del producto</h3>
