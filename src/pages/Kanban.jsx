@@ -246,17 +246,60 @@ export default function Kanban() {
     });
   }
 
-  // Reordenar columnas
-  function onReorder(from, to) {
-    if (from === to) return;
-    const next = [...cols];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    setStateAndSync({
-      ...state,
-      columns: { ...state.columns, [state.activeBoardId]: next },
-    });
-  }
+	// Reordenar columnas y sincronizar con API
+	async function onReorder(from, to) {
+	  if (from === to) return;
+	  if (!state.activeBoardId) return;
+
+	  const next = [...cols];
+	  const [moved] = next.splice(from, 1);
+	  next.splice(to, 0, moved);
+
+	  // Actualizar UI inmediatamente (optimistic update)
+	  setStateAndSync({
+		...state,
+		columns: { ...state.columns, [state.activeBoardId]: next },
+	  });
+
+	  // Preparar datos para enviar al API
+	  const columnasConPosicion = next.map((col, index) => ({
+		id: col.id,
+		posicion: index
+	  }));
+
+	  const payload = {
+		tablero_id: state.activeBoardId,
+		columnas: columnasConPosicion
+	  };
+
+	  console.log("[ReordenarColumnas] Enviando al API:", payload);
+
+	  try {
+		const res = await fetch(`${API_BASE}/columnas/actualizar-orden`, {
+		  method: "POST",
+		  headers: { 
+			"Content-Type": "application/json",
+			"Accept": "application/json" 
+		  },
+		  body: JSON.stringify(payload),
+		});
+
+		if (!res.ok) {
+		  const errorText = await res.text().catch(() => "");
+		  console.error("[ReordenarColumnas] Error HTTP:", res.status, errorText);
+		  throw new Error(`Error actualizando orden (${res.status})`);
+		}
+
+		const result = await res.json();
+		console.log("[ReordenarColumnas] Respuesta exitosa:", result);
+
+	  } catch (err) {
+		console.error("[ReordenarColumnas] Error:", err);
+		// Opcional: podrías hacer un rollback aquí si falla
+		// setState(previousState);
+		alert("Error al actualizar el orden de las columnas en el servidor");
+	  }
+	}
 
   // Mover tarjeta entre columnas
   function moveCard(fromColId, fromIndex, toColId, toIndex) {

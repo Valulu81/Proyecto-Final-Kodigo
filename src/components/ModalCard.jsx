@@ -41,6 +41,32 @@ export default function ModalCard({
     }
   }, [open, defaultValue, assignedTo, status, priority, dueDate]);
 
+  // ✅ Validar que fecha de asignación no sea posterior a fecha límite
+  const handleAssignDateChange = (e) => {
+    const newAssignDate = e.target.value;
+    
+    // Si hay fecha límite y la nueva fecha de asignación es posterior, mostrar alerta
+    if (dueDateState && newAssignDate > dueDateState) {
+      alert("La fecha de asignación no puede ser posterior a la fecha límite");
+      return;
+    }
+    
+    setAssignDateState(newAssignDate);
+  };
+
+  // ✅ Validar que fecha límite no sea anterior a fecha de asignación
+  const handleDueDateChange = (e) => {
+    const newDueDate = e.target.value;
+    
+    // Si hay fecha de asignación y la nueva fecha límite es anterior, mostrar alerta
+    if (assignDateState && newDueDate < assignDateState) {
+      alert("La fecha límite no puede ser anterior a la fecha de asignación");
+      return;
+    }
+    
+    setDueDateState(newDueDate);
+  };
+
   // ✅ Crear tarea en la API
   const createTaskInAPI = async (cardData) => {
     if (!colId) {
@@ -124,7 +150,14 @@ export default function ModalCard({
       alert("El título es obligatorio");
       return;
     }
-  console.log("[ModalCard] submit", { editMode, cardId, colId })
+    
+    // ✅ Validación final antes de enviar
+    if (assignDateState && dueDateState && assignDateState > dueDateState) {
+      alert("La fecha de asignación no puede ser posterior a la fecha límite");
+      return;
+    }
+    
+    console.log("[ModalCard] submit", { editMode, cardId, colId })
     setLoading(true);
 
     const data = {
@@ -252,8 +285,9 @@ export default function ModalCard({
         <input
           type="date"
           value={assignDateState}
-          onChange={(e) => setAssignDateState(e.target.value)}
+          onChange={handleAssignDateChange}
           onKeyDown={handleKeyDown}
+          max={dueDateState || undefined}
           className="mb-4 w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           disabled={loading}
         />
@@ -261,8 +295,9 @@ export default function ModalCard({
         <input
           type="date"
           value={dueDateState}
-          onChange={(e) => setDueDateState(e.target.value)}
+          onChange={handleDueDateChange}
           onKeyDown={handleKeyDown}
+          min={assignDateState || undefined}
           className="mb-6 w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           disabled={loading}
         />
