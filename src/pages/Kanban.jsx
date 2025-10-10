@@ -323,10 +323,10 @@ export default function Kanban() {
     if (!state.activeBoardId) return;
     try {
       const colorMap = {
-        "base.purple": "#A855F7",
+        "base.purple": "#472268",
         "base.red": "#EF4444",
         "base.green": "#10B981",
-        "base.blue": "#3B82F6",
+        "base.blue": "#406496",
       };
       const colorHex = colorMap[color] || color || "#FFFFFF";
 
@@ -360,12 +360,12 @@ export default function Kanban() {
     try {
       // Mapeo de colores Tailwind → Hex
       const colorMap = {
-        "base.dark": "#1E1B4B",
-        "base.purple": "#A855F7",
-        "base.blue": "#3B82F6",
-        "base.orange": "#F97316",
-        "base.yellow": "#FACC15",
-        "base.teal": "#14B8A6",
+        "base.dark": "#120C24",
+        "base.purple": "#472268",
+        "base.blue": "#406496",
+        "base.orange": "#EE4A24",
+        "base.yellow": "#F59023",
+        "base.teal": "#02B08E",
       };
 
       const colorHex = colorMap[color] || color || "#FFFFFF";
@@ -453,11 +453,11 @@ export default function Kanban() {
 
     // Mapa completo de tokens a HEX (ajusta hex si deseas otros valores)
     const colorMap = {
-      "base.dark": "#1E1B4B",
-      "base.purple": "#A855F7",
-      "base.blue": "#3B82F6",
-      "base.orange": "#F97316",
-      "base.yellow": "#FACC15",
+      "base.dark": "#120C24",
+      "base.purple": "#472268",
+      "base.blue": "#406496",
+      "base.orange": "#EE4A24",
+      "base.yellow": "#F59023",
       "base.teal": "#10B981",
       "base.green": "#10B981",
       "base.red": "#EF4444",

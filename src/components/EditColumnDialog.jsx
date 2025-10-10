@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 
 const COLOR_OPTIONS = [
-  { id: "base.dark", hex: "#1E1B4B" },
-  { id: "base.purple", hex: "#A855F7" },
-  { id: "base.blue", hex: "#3B82F6" },
-  { id: "base.orange", hex: "#F97316" },
-  { id: "base.yellow", hex: "#FACC15" },
+  { id: "base.dark", hex: "#120C24" },
+  { id: "base.purple", hex: "#472268" },
+  { id: "base.blue", hex: "#406496" },
+  { id: "base.orange", hex: "#EE4A24" },
+  { id: "base.yellow", hex: "#F59023" },
   { id: "base.teal", hex: "#10B981" },
 ];
 
