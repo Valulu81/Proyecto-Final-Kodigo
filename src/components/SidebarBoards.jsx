@@ -12,6 +12,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
 
   const [askDelete, setAskDelete] = useState(false);
   const [askRename, setAskRename] = useState(false);
+  const [askAdd, setAskAdd] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // ✅ Cargar tableros desde la API
@@ -44,12 +45,10 @@ export default function SidebarBoards({ state, setState, setActive }) {
       if (!res.ok) throw new Error("Error al crear tablero");
 
       // Refrescar lista
-      const newList = await fetch(`${API_BASE}/tableros`).then((r) =>
-        r.json()
-      );
+      const newList = await fetch(`${API_BASE}/tableros`).then((r) => r.json());
 
       const newBoardId = newList[newList.length - 1]?.id;
-      
+
       setState((prev) => ({
         ...prev,
         boards: newList,
@@ -64,6 +63,11 @@ export default function SidebarBoards({ state, setState, setActive }) {
     }
   }
 
+  function addBoard() {
+    if (!active) return;
+    setAskAdd(true);
+  }
+
   function renameBoard() {
     if (!active) return;
     setAskRename(true);
@@ -74,38 +78,71 @@ export default function SidebarBoards({ state, setState, setActive }) {
     setAskDelete(true);
   }
 
+  // ✅ Mostrar prompt antes de agregar
+  function addBoard() {
+    setAskAdd(true);
+  }
+
+  // ✅ Crear tablero con nombre personalizado
+  async function handleAddBoard(name) {
+    try {
+      const res = await fetch(
+        `${API_BASE}/tableros?nombre=${encodeURIComponent(name)}`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) throw new Error("Error al crear tablero");
+
+      // Refrescar lista desde la API
+      const newList = await fetch(`${API_BASE}/tableros`).then((r) => r.json());
+      const newBoardId = newList[newList.length - 1]?.id;
+
+      setState((prev) => ({
+        ...prev,
+        boards: newList,
+        activeBoardId: newBoardId || prev.activeBoardId,
+      }));
+
+      if (newBoardId) {
+        setActive(newBoardId);
+      }
+    } catch (err) {
+      console.error("Error al crear tablero:", err);
+      alert("No se pudo crear el tablero");
+    }
+  }
+
   // ✅ Eliminar tablero en la API
   async function handleDeleteBoard() {
     try {
       const res = await fetch(`${API_BASE}/tableros/${active}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (!res.ok) throw new Error("Error al eliminar tablero");
 
       // Refrescar lista desde API
-      const newList = await fetch(`${API_BASE}/tableros`).then(r => r.json());
-      
+      const newList = await fetch(`${API_BASE}/tableros`).then((r) => r.json());
+
       const boards = newList;
       const fallback = boards[0]?.id || null;
-      
+
       // Limpiar las columnas del tablero eliminado
       const { [active]: _removed, ...restCols } = state.columns;
-      
+
       const next = {
         ...state,
         boards,
         columns: restCols,
         activeBoardId: fallback,
       };
-      
+
       setState(next);
-      
+
       // Si hay un tablero fallback, activarlo
       if (fallback) {
         setActive(fallback);
       }
-      
     } catch (err) {
       console.error("Error al eliminar tablero:", err);
       alert("Error al eliminar el tablero");
@@ -121,22 +158,21 @@ export default function SidebarBoards({ state, setState, setActive }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombre: newName
-        })
+          nombre: newName,
+        }),
       });
 
       if (!res.ok) throw new Error("Error al renombrar tablero");
 
       // Refrescar lista desde API
-      const newList = await fetch(`${API_BASE}/tableros`).then(r => r.json());
-      
+      const newList = await fetch(`${API_BASE}/tableros`).then((r) => r.json());
+
       const next = {
         ...state,
         boards: newList,
       };
-      
+
       setState(next);
-      
     } catch (err) {
       console.error("Error al renombrar tablero:", err);
       alert("Error al renombrar el tablero");
@@ -150,15 +186,16 @@ export default function SidebarBoards({ state, setState, setActive }) {
   };
 
   return (
-    <aside className="flex h-full w-40 flex-col bg-[#120C24] text-white">
+    <aside className="flex sm:order-first order-last h-[15vh] justify-center sm:h-full w-100 sm:w-40 sm:flex-col bg-[#120C24] text-white">
       {/* zona fija superior */}
-      <div className="flex flex-col items-center space-y-6 pt-6">
+      <div className="flex sm:flex-col justify-center align items-center gap-5 pt-6">
         <button
           onClick={addBoard}
+          disabled={!active}
           className="flex flex-col items-center text-xs hover:opacity-80"
         >
           <Plus size={22} strokeWidth={2} />
-          <span className="mt-1 text-center leading-tight">
+          <span className="mt-1 text-center leading-tight hidden sm:inline">
             Nuevo
             <br />
             Tablero
@@ -171,7 +208,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
           className="flex flex-col items-center text-xs hover:opacity-80 disabled:opacity-40"
         >
           <Trash2 size={22} strokeWidth={2} />
-          <span className="mt-1 text-center leading-tight">
+          <span className="mt-1 text-center leading-tight hidden sm:inline">
             Eliminar
             <br />
             Tablero
@@ -184,7 +221,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
           className="flex flex-col items-center text-xs hover:opacity-80 disabled:opacity-40"
         >
           <Pencil size={22} strokeWidth={2} />
-          <span className="mt-1 text-center leading-tight">
+          <span className="mt-1 text-center leading-tight hidden sm:inline">
             Renombrar
             <br />
             Tablero
@@ -193,12 +230,12 @@ export default function SidebarBoards({ state, setState, setActive }) {
       </div>
 
       {/* separador */}
-      <div className="mx-auto my-4 h-px w-5/6 bg-white/30" />
+      <div className="mx-auto my-4 h-[0px] sm:w-5/6 bg-white/30 hidden sm:inline" />
 
       {/* lista scrolleable */}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto px-4 pb-8 space-y-2 text-sm"
+        className="flex-1 overflow-y-auto p-2 sm:px-4 sm:pb-8 space-y-2 text-sm max-w-[200px]"
       >
         {loading ? (
           <div className="text-white/60 text-center mt-4">Cargando...</div>
@@ -222,7 +259,7 @@ export default function SidebarBoards({ state, setState, setActive }) {
       </div>
 
       {/* logo inferior */}
-      <div className="flex items-center justify-center py-6">
+      <div className="sm:flex hidden items-center justify-center py-6">
         <img
           src={KodigoLogo}
           alt="Logo Kodigo"
@@ -258,6 +295,24 @@ export default function SidebarBoards({ state, setState, setActive }) {
           }
           handleRenameBoard(name);
           setAskRename(false);
+        }}
+      />
+
+      <PromptDialog
+        open={askAdd}
+        title="Nuevo tablero"
+        label="Nombre del tablero"
+        submitText="Crear"
+        cancelText="Cancelar"
+        onCancel={() => setAskAdd(false)}
+        onSubmit={(value) => {
+          const name = value?.trim();
+          if (!name) {
+            setAskAdd(false);
+            return;
+          }
+          handleAddBoard(name);
+          setAskAdd(false);
         }}
       />
     </aside>
