@@ -68,7 +68,7 @@ export default function Column({
 
   return (
     <>
-      <div className="relative w-80 shrink-0 h-[calc(100dvh-9rem)] flex">
+      <div className="relative w-80 shrink-0 h-[500px] flex">
         <div className="flex w-full flex-col rounded-3xl border-4 border-base-dark overflow-hidden">
           {/* Fondo de columna */}
           <div
@@ -79,8 +79,14 @@ export default function Column({
             <div className="border-b-4 border-base-dark bg-white w-full px-5 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Table2 size={22} strokeWidth={2.5} className="text-base-dark" />
-                  <h3 className="text-2xl font-semibold truncate">{col.name}</h3>
+                  <Table2
+                    size={22}
+                    strokeWidth={2.5}
+                    className="text-base-dark"
+                  />
+                  <h3 className="text-2xl font-semibold truncate">
+                    {col.name}
+                  </h3>
                 </div>
                 <div className="flex h-7 items-center">
                   <MenuDots
@@ -144,7 +150,12 @@ export default function Column({
                       e.dataTransfer.getData("text/plain") || "{}"
                     );
                     if (!data) return;
-                    onMoveCard?.(data.fromColId, data.fromIndex, col.id, cards.length);
+                    onMoveCard?.(
+                      data.fromColId,
+                      data.fromIndex,
+                      col.id,
+                      cards.length
+                    );
                   }}
                 />
 
@@ -156,7 +167,11 @@ export default function Column({
                   >
                     <span className="text-sm">Agregar Tarea</span>
                     <span className="inline-flex h-7 w-7 items-center justify-center">
-                      <Plus size={18} strokeWidth={2.5} className="text-base-dark" />
+                      <Plus
+                        size={18}
+                        strokeWidth={2.5}
+                        className="text-base-dark"
+                      />
                     </span>
                   </button>
                 </div>
